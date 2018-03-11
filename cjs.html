@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+        <title>Browserify</title>
+    </head>
+
+    <body>
+        <div id="wrapper">
+            <!-- Sidebar -->
+            <div id="sidebar-wrapper"></div>
+            <!-- /#sidebar-wrapper -->
+            <!-- Page Content -->
+            <div id="page-content-wrapper">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h1>CommonJS + Script Build</h1>
+                            <p>This page demonstrates the code written in CJS style that was browserified via Node script.</p>
+                            <div class="module-container"></div>
+                            <h3>Build:</h3>
+                            <p>The code can be built and bundled in 2 ways:</p>
+                            <h4 style="margin-top: 30px">1. Command Line</h4>
+                            <p><a href="cjs-cli.html">Click Here</a> for detailed info.</p>
+                            <h4 style="margin-top: 30px">2. Node.js Build</h4>
+                            <p>
+                                If you need advance options and more control over the bundling, you may use this. Here we basically write a node.js 
+                                script and use the "browserify" package to bundle the code.
+                            </p>
+                            <p>
+                                Also here you can over-write or modify the global "browserify" configs defined in package.json.
+                            </p>
+                            <pre><code class="language-javascript">
+                                var browserify = require('browserify');
+                                var fse = require('fs-extra');   // internal dependency of browserify, not seperatly installed.
+                                                                 // Has better features than "fs"
+                                var config = {
+                                    basedir: "public",
+                                    entries: "app/cjs/main.js",
+                                    paths: [
+                                        // Remmember: PATHS cannot be used inside 'fs'
+                                        // package.json "browser" creates alias, whereas "paths" tell where to look for modules
+                                        // Just for demo. Global (package.json) is applied here anyways (You may remove global config and check)
+                                        "../node_modules/prismjs/plugins/normalize-whitespace/",
+                                    ],
+                                    transform: [ 
+                                        // this replaces fs read entries in any file to the actual file content
+                                        // Eg. HTML templates
+                                        // Just for demo. Global (package.json) is applied here anyways (You may remove global config and check)
+                                        "brfs", // npm install needed
+                                    ],
+                                };
+
+                                // The following code is native Node.js code
+                                // nothing to do with browserify
+                                var output = 'public/dist/cjs/bundle.js';
+
+                                // check if file and directory exists. If not create them
+                                // This is the -extra feature in fse that is not there in original fs.
+                                fse.ensureFileSync(output);
+
+                                // Create a write stream for the pipe to output to
+                                var bundleFs = fse.createWriteStream(output);
+
+                                var b = browserify(config);
+                                b.bundle().pipe(bundleFs);
+                            </code></pre>
+                            <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /#page-content-wrapper -->
+        </div>
+        <!-- /#wrapper -->
+
+        <script src="public/dist/cjs/bundle.js"></script>
+    </body>
+
+</html>

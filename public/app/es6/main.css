@@ -1,0 +1,8 @@
+/**
+* Because direct imports to node_module css does not work.
+* Hence, this is a workaround.
+* Refer: https://github.com/cheton/browserify-css#1-how-do-i-include-css-files-located-inside-the-node_modules-folder
+*/
+@import "../../../node_modules/bootstrap/dist/css/bootstrap.css";
+@import "../../../node_modules/prismjs/themes/prism-coy.css";
+@import "../../stylesheets/simple-sidebar.css";

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+        <title>Browserify</title>
+    </head>
+
+    <body>
+        <div id="wrapper">
+            <!-- Sidebar -->
+            <div id="sidebar-wrapper"></div>
+            <!-- /#sidebar-wrapper -->
+            <!-- Page Content -->
+            <div id="page-content-wrapper">
+                <div class="container-fluid">
+                    <h1>CommonJS + CLI Build</h1>
+                    <p>This page demonstrates the code written in CJS style that was browserified via <code>browserify</code> command and <i>package.json</i> config.</p>
+                    <p>With a proper project configuration (package.json), <b>this should be enough for most</b> requirements.</p>
+                    <div class="alert alert-info">
+                        <strong>SHIM Test:</strong>
+                        Bootstrap shimming was - <span id="boot-shim" style="color: brown">FAILED</span>
+                    </div>
+                    <div class="module-container"></div>
+                    <h3>Build Configurations:</h3>
+                    <h4 style="margin-top: 30px">1. Command Line</h4>
+                    <pre><code class="language-bash">
+                        browserify public/app/cjs/main-cli.js -o public/dist/cjs/bundle-cli.js
+                    </code></pre>
+                    <p>The 1st param is entry file and -o defines output.</p>
+                    <p>This is simple and no overhead is required to create the bundled file. However you cannot pass
+                        a lot of Configurations to browserify like "paths".
+                    </p>
+                    <h4 style="margin-top: 30px">2. package.json</h4>
+                    <p>
+                        You may provide "tranforms" and each transform definitions in your projects package.json file.
+                        For instance, this project contains the following configs,
+                    </p>
+                    <div class="alert alert-warning">
+                        <strong>Global Configs!</strong>
+                        The configs defined in the package.json would be applied to
+                        all CLI and SCRIPT based browserify bundling in the project.
+                        No matter where the SCRIPTS are or where the command is run.
+                    </div>
+                    <pre><code class="language-javascript">
+                        {
+                            ...,
+                            "browserify": {
+                                // apply these transforms to all the files
+                                // Each one has to be seperatly installed
+                                "transform": [
+                                    "brfs",             // convert fs.read to inline raw file contents
+                                    "browserify-shim"   // create shims
+                                ]
+                            },
+                            // browser field is used by a lot of module loaders like jspm, browserify etc.
+                            // This tells the Sytem that - When running on a browser don't use package.json "main"
+                            // instead, use these.
+                            // In a clever way, this is how you define an ALIAS
+                            // This is better than "aliasify"
+                            "browser": {
+                                // root or baseDir is not clear here. Hence, must use relational paths
+                                "bootstrap": "./node_modules/bootstrap/dist/js/bootstrap.js",
+                                "prism-normalize-whitespace": "./node_modules/prismjs/plugins/normalize-whitespace/prism-normalize-whitespace.js"
+                            },
+                            // This field is specific for "browserify-shim" transform
+                            "browserify-shim": {
+                                "bootstrap": {
+                                    // exports not needed here, just for testing
+                                    "exports": "window",
+                                    // depends on jquery aliased as jQuery
+                                    // in short this creates,
+                                    // jQuery = window.jQuery = require("jquery");
+                                    // Browserify is nice and does not expose jQuery to global scope
+                                    // but doing this will.
+                                    // Refer: https://github.com/thlorenz/browserify-shim/issues/201
+                                    "depends": [ "jquery:jQuery" ] 
+                                }
+                            }
+                        }
+                    </code></pre>
+                    <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                </div>
+            </div>
+            <!-- /#page-content-wrapper -->
+        </div>
+        <!-- /#wrapper -->
+
+        <script src="public/dist/cjs/bundle-cli.js"></script>
+    </body>
+
+</html>

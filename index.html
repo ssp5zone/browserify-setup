@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Browserify</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="public/stylesheets/simple-sidebar.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper"></div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1>Introduction</h1>
+                        <p>This is a collection of Browserify setups.</p>
+                        <p><strong>Notes:</strong></p>
+                        <ul>
+                            <li> Browserify was created to make Node.js code run in browsers.
+                                Hence a lot of existing node_modules like <code>fs, uniq, os</code> etc.
+                                can be used as for the browser coding too.
+                            </li>
+                            <li>Basic philosophy: The same program can run on Node and Browser.</li>
+                            <li>
+                                Since Node.js follows CommonJS style of coding, Browserify became famous 
+                                for developing UI code in CJS.
+                            </li>
+                            <li>
+                                Ultimately the bundle created has the same AMD-wrapped-CommonJS structure
+                                as RequireJS traditional standard. That is, a <code>define(function(require, module, exports){})</code>
+                                is wrapped around the CJS code. Everything else remains the same.
+                            </li>
+                            <li>
+                                It places the <code>define()</code> and <code>require()</code> function definitions
+                                at the top of the bundle.
+                            </li>
+                            <li>
+                                In CJS you may use <code>exports</code> or <code>module.exports</code>
+                                but not <code>return</code>.
+                            </li>
+                            <li>
+                                It has a more stable path resolutions than the RequireJS, but no lazy loading support.
+                            </li>
+                        </ul>
+                        <h3>Package.json
+                            <small>The configuration for this project</small>
+                        </h3>
+                        <pre><code class="language-javascript">
+                            {
+                                "scripts": {
+                                    "server": "lite-server",
+                                    "build-cli": "browserify public/app/cjs/main-cli.js -o public/dist/cjs/bundle-cli.js",
+                                    "build-cjs": "node public/app/cjs/cjs-build.js",
+                                    "build-amd": "node public/app/amd/amd-build.js",
+                                    "build-es6": "node public/app/es6/es6-build.js",
+                                    "build": "npm run build-cli && npm run build-cjs && npm run build-amd && npm run build-es6",
+                                    "start": "npm install && npm run build && npm run server"
+                                },
+                                "dependencies": {
+                                    "bootstrap": "^3.3.7",
+                                    "jquery": "^3.3.1",
+                                    "prismjs": "^1.11.0"
+                                },
+                                "devDependencies": {
+                                    // a transform plugin for browserify
+                                    "brfs": "^1.4.4",
+
+                                    // browserify bundle
+                                    "browserify": "^16.1.0",
+
+                                    // create shims for Non-CJS packages
+                                    "browserify-shim": "^3.8.14",
+
+                                    // better version of insert-css plugin
+                                    "browserify-css": "^0.14.0",
+
+                                    // had some issues. Not using anymore
+                                    "cssify": "^1.0.3",
+
+                                    // plugin to understand AMD format
+                                    "deamdify": "^0.3.0",
+
+                                    // plugin to understand ES6 format
+                                    "es6ify": "^1.6.0",
+
+                                    // simpler way to inject template
+                                    "html2js-browserify": "^1.3.0",
+
+                                    // insert-css plugin for browserify
+                                    "insert-css": "^2.0.0",
+
+                                    // a small server
+                                    "lite-server": "^2.3.0"
+                                },
+                                // global browserify configurations
+                                "browserify": {
+                                    "transform": [
+                                        // convert fs.read() to inline raw file data
+                                        "brfs",
+
+                                        // create shims if told
+                                        "browserify-shim"
+                                    ]
+                                },
+                                "browser": {
+                                    // use this instead of one defined in package.json -> "main"
+                                    "bootstrap": "./node_modules/bootstrap/dist/js/bootstrap.js",
+
+                                    // alias module resolution
+                                    "prism-normalize-whitespace": "./node_modules/prismjs/plugins/normalize-whitespace/prism-normalize-whitespace.js"
+                                },
+                                // Configuration for browserify-shim transform
+                                "browserify-shim": {
+                                    "bootstrap": {
+                                        // what will be exports = {} variable
+                                        "exports": "window",
+
+                                        // load jquery as 'jQuery'
+                                        "depends": [ "jquery:jQuery" ] 
+                                    }
+                                }
+                            }
+                        </code></pre>
+                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="node_modules/jquery/dist/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <!-- Prism -->
+    <script src="node_modules/prismjs/prism.js"></script>
+    <script src="node_modules/prismjs/plugins/normalize-whitespace/prism-normalize-whitespace.js"></script>
+    <link href="node_modules/prismjs/themes/prism-coy.css" rel="stylesheet">
+
+    <!-- Menu Toggle Script -->
+    <script>
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+        $("#sidebar-wrapper").load("public/templates/sidebar.html", function(){
+            $(".sidebar-brand+li>a").addClass("active");
+        });
+    </script>
+
+</body>
+
+</html>

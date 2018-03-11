@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+        <title>Browserify</title>
+    </head>
+
+    <body>
+        <div id="wrapper">
+            <!-- Sidebar -->
+            <div id="sidebar-wrapper"></div>
+            <!-- /#sidebar-wrapper -->
+            <!-- Page Content -->
+            <div id="page-content-wrapper">
+                <div class="container-fluid">
+                    <h1>ES6 Styled Code (Modded)</h1>
+                    <p>This page demonstrates the code written in Es6 style that was browserified via <code>es6ify</code>.</p>
+                    <p><code>es6ify</code> is a transform plugin that first converts ES6 code to CJS for Browserify to bundles.</p>
+                    <div class="alert alert-warning">
+                        <strong>Careful!</strong>
+                        The global settings given in package.json do not seem to work correctly. Give them as local setting instead.
+                    </div>
+                    <div class="module-container"></div>
+                    <h3>Code:</h3>
+                    
+                    <h4 style="margin-top: 30px">1. HTML Loader</h4>
+                    <div class="alert alert-danger">
+                        <strong>Issue!</strong>
+                        The usual <code>brfs</code> transform does not work here for some reason.
+                    </div>
+                    <p>
+                        So here we use something even better <code>html2js-browserify</code>. With this you 
+                        just <code>require</code> or <code>import</code> the file.
+                    </p>
+                    <pre><code class="language-javascript">
+                        // Since this is essemtially a require()
+                        // you either use a relative path or an alias
+                        import template from "../../../templates/sidebar.html";
+                    </code></pre> 
+
+
+                    <h4 style="margin-top: 30px">2. CSS Loader</h4>
+                    <p>
+                        Since we upgraded our HTML loading mechanism, we upgraded our CSS loader too.
+                    </p>
+                    <p>
+                        <code>cssify</code> was the first choice but caused issues while loading CSS from 
+                        node_modules. So we moved to <code>browserify-css</code>. With this you can just import the files as,
+                    </p>
+                    <pre><code class="language-javascript">
+                        import "./main.css";
+                    </code></pre> 
+                    <p>
+                        But <code>browserify-css</code> has the same issue as above. However, it provides an alternative
+                        to load the CSS in <i>node_modules</i>,
+                    </p>
+                    <pre><code class="language-css">
+                        /**
+                         * Because direct imports to node_module css does not work.
+                         * Hence, this is a workaround.
+                         * Refer: https://github.com/cheton/browserify-css#1-how-do-i-include-css-files-located-inside-the-node_modules-folder
+                         */
+                        @import "../../../node_modules/bootstrap/dist/css/bootstrap.css";
+                        @import "../../../node_modules/prismjs/themes/prism-coy.css";
+                        @import "../../stylesheets/simple-sidebar.css";
+                    </code></pre> 
+                    
+                    <h4 style="margin-top: 30px">3. Exports</h4>
+                    <p>
+                        In ES6 you cannot directly export variables like typescript.
+                        Here you either export <code>default</code> <i>(similar to module.exports =  something)</i>
+                        or use a group of objects <i>exports = {some1: ..., something2: ..}</i> etc.
+                    </p>
+                    <pre><code class="language-javascript">
+                        // module.exports = 12;
+                        export default k = 12;
+
+                        // exports = {cube: cube, foo: foo, graph: graph};
+                        // Each of them could be individually imported as
+                        // import {graph} from "./aboveFile";
+                        export { cube, foo, graph };
+
+                        // Assign and Export DO NOT work
+                        // beacuse the assignment is not yet complete before export
+                        export let a = 12;
+                        export default Block = function(){ .. };
+                    </code></pre> 
+
+                    <h4 style="margin-top: 30px">4. Bundling script</h4>
+                    <p>
+                        The following script was used for es6ify and bundling.
+                    </p>
+                    <pre><code class="language-javascript">
+                        var browserify = require('browserify');
+                        var fse = require('fs-extra');
+
+                        var config = {
+                            basedir: "public",
+                            entries: "app/es6/main.js",
+                            transform: [ 
+                                "es6ify",
+                                "html2js-browserify",
+                                "browserify-css",
+                            ],
+                            // generate source maps for easier Debugging
+                            debug: true,
+                        };
+
+                        var output = 'public/dist/es6/bundle.js';
+                        fse.ensureFileSync(output);
+                        var bundleFs = fse.createWriteStream(output);
+
+
+                        var b = browserify(config);
+                        b.bundle().pipe(bundleFs);
+                    </code></pre>
+
+                    <h4 style="margin-top: 30px">5. Traceur Import</h4>
+                    <p>
+                        <code>es6ify</code> internally use Google' Traceur library to run some the ES6 features like <b>Classes</b>.
+                        For this you need to include Traceur runtime. The suggseted way to do this was add  it as <code>b.add(es6ify.runtime)</code>
+                        while bundling. However this creates after a lot of hit and try, this creates incorrect bundles everytime.
+                    </p>
+                    <p>
+                        The only solution that worked was to include Traceur manually in the project.
+                    </p>
+                    <div class="alert alert-info">
+                        <strong>Note!</strong>
+                        You don't need Traceur for most feature, only a few of them.
+                    </div>
+                    <pre><code class="language-javascript">
+                        // !!! IMPORTANT !!!
+                        // After breaking my head for 6 hours, 
+                        // only direct import to traceur works properly
+                        // Adding it internallt via b.add(es6ify.runtime) spoils other code
+                        import "traceur/bin/traceur-runtime";
+
+                        import "./sidebar/main";
+                        import "./coder/main";
+                        import "./blocks/main";
+
+                        // All CSS are loaded via this file
+                        import "./main.css";
+                    </code></pre>
+
+                    <h4 style="margin-top: 30px">6. Source Maps</h4>
+                    <p>
+                        Debugging directly in bundle is cumbersome. It would be great if we directly debug in our source files. 
+                    </p>
+                    <p>
+                        This is where SourceMaps come to picture. As the name suggests, it maps <b>each line</b> of 
+                        the minified, uglified, optimized, transformed and
+                        bundled code to its source code. The browser still use the bundle only, but while Debugging,
+                        the machine detects the presence of a source map and hence maps the said file to all its source files.
+                    </p>
+                    <p>
+                        Once this is done, you can put breakpoints in the Generated source file itself. As you debug, internally the minified
+                        code would run, but you could set breakpoints in the source file(s) and step through it.
+                    </p>
+                    <div class="alert alert-success">
+                        <strong>Good!</strong>
+                        All the files and directories are coded into source map info. So, nothing is seperatly downloaded.
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Bad!</strong>
+                        All the files and directories are coded into source map info. This increase the file size tremendously.
+                        Hence, <b>do not use source-mapping in production code</b>, only for development.
+                    </div>
+                    <p>
+                        In browserify, you just have to add <code>debug: true</code> in the config to generate source-maps.
+                    </p>
+                    <div class="alert alert-info">
+                        <strong>Note:</strong>
+                        You can generate Source Maps for not only ES6 but any module format system like AMD, CJS etc.
+                    </div>
+
+                    <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                </div>
+            </div>
+            <!-- /#page-content-wrapper -->
+        </div>
+        <!-- /#wrapper -->
+
+        <script src="public/dist/es6/bundle.js"></script>
+    </body>
+
+</html>

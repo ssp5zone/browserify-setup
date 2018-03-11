@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+        <title>Browserify</title>
+    </head>
+
+    <body>
+        <div id="wrapper">
+            <!-- Sidebar -->
+            <div id="sidebar-wrapper"></div>
+            <!-- /#sidebar-wrapper -->
+            <!-- Page Content -->
+            <div id="page-content-wrapper">
+                <div class="container-fluid">
+                    <h1>AMD Styled Code</h1>
+                    <p>This page demonstrates the code written in CJS style that was browserified via <code>deamdify</code>.</p>
+                    <p><code>deamdify</code> is a transform plugin that first converts AMD code to CJS for Browserify to bundles.</p>
+                    <div class="alert alert-success">
+                        <strong>Good!</strong>
+                        The global settings given in package.json are correctly taken into consideration along with local one.
+                    </div>
+                    <div class="module-container"></div>
+                    <h3>Code:</h3>
+                    
+                    <h4 style="margin-top: 30px">1. Named Modules</h4>
+                    <p>
+                        The <code>define(id?, deps?, factory);</code> definition can sometimes contain an <code>id</code> as well.
+                        If an id is given you cannot use a relative path. Hence, you must define an alias in the "browser" field
+                        of package.json.
+                    </p>
+                    <pre><code class="language-javascript">
+                        "browser": {
+                            "bootstrap": "./node_modules/bootstrap/dist/js/bootstrap.js",
+                            "prism-normalize-whitespace": "./node_modules/prismjs/plugins/normalize-whitespace/prism-normalize-whitespace.js",
+                            // an alias added for named define() module
+                            // as it cannot be referenced via rel paths
+                            "Block": "./public/app/amd/blocks/block.js"
+                        },
+                    </code></pre> 
+
+                    <h4 style="margin-top: 30px">2. Direct module calls</h4>
+                    <p>
+                        When writing in AMD, you need not <code>require()</code> node_modules,
+                        you can inject them via <code>define()</code> as well.
+                    </p>
+                    <pre><code class="language-javascript">
+                        define([
+                            "require",
+                            "insert-css",   // Notice - A Node.js Module
+                            "./blocks/main",
+                            "./sidebar/main",
+                            "./coder/main",
+                        ], function(require, insertCSS) {
+                            
+                            // fs module has some issues and cannot be injected via define()
+                            var fs = require("fs");
+
+                            ...
+                        });
+                    </code></pre> 
+                    <div class="alert alert-danger">
+                        <strong>Issue!</strong>
+                        For some reasons you cannot do this for "fs" module.
+                    </div>
+
+                    <h4 style="margin-top: 30px">3. Bundling script</h4>
+                    <p>
+                        The following script was used for deAMDifying and bundling.
+                    </p>
+                    <pre><code class="language-javascript">
+                        var browserify = require('browserify');
+                        var fse = require('fs-extra');
+
+                        var config = {
+                            basedir: "public",
+                            entries: "app/amd/main.js",
+                            transform: [ 
+                                "deamdify", // transform for AMD to CJS
+                            ],
+                        };
+
+                        var output = 'public/dist/amd/bundle.js';
+                        fse.ensureFileSync(output);
+                        var bundleFs = fse.createWriteStream(output);
+
+                        var b = browserify(config);
+                        b.bundle().pipe(bundleFs);
+                    </code></pre>
+
+                    <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                </div>
+            </div>
+            <!-- /#page-content-wrapper -->
+        </div>
+        <!-- /#wrapper -->
+
+        <script src="public/dist/amd/bundle.js"></script>
+    </body>
+
+</html>
